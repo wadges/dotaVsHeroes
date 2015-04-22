@@ -9,11 +9,11 @@ if (!(file_exists('historys') && is_dir('historys')))
 
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
-$matchnumbers = 100;
 // be carefull to use good date format according to your region configuration
 $startTime = strtotime('04/01/2015');
+$endTime = null;
 $gameCountToStat = 0;
-$enddate = '';
+$maxMaxNumbers = 100;
 $top = 10;
 
 
