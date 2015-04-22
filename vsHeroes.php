@@ -100,7 +100,7 @@ foreach ($heroStats as $key => $value)
     $rateAgainst = $totalAgainst > 0 ? round($lostAgainst / $totalAgainst * 100, 2) : 0;
     $rateWith = $totalWith > 0 ? round($winWith / $totalWith * 100, 2) : 0;
     if ($totalAgainst > 0)
-      echo "You faced $hero $totalAgainst times, lost $lostAgainst times, for a loosing rate of $rateAgainst%\n";
+      echo "You faced $hero $totalAgainst times, lost $lostAgainst times, for a losing rate of $rateAgainst%\n";
     if ($totalWith > 0)
       echo "You played with a $hero $totalWith times, lost $lostWith times, for a winning rate of $rateWith%\n";
     if ($count == $top)
