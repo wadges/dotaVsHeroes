@@ -9,12 +9,12 @@ if (!(file_exists('historys') && is_dir('historys')))
 
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
-$steamId = 27137503;
 // be carefull to use good date format according to your region configuration
-$startTime = strtotime('04/01/2015');
-$endTime = null;
-$maxMatchToCount = 50;
+//$startTime = strtotime('04/01/2015');
+$endTime = strtotime('12/12/2016');
+$maxMatchToCount = 120;
 $top = 10;
+$offline = false;
 // Possible values :
 // -1 : invalid
 // 0 : public matchmaking
@@ -35,48 +35,67 @@ $sort = 'total';
 // order possible values = desc or null
 $order = 'desc';
 
-if (!file_exists('historys/'.$steamId))
-  {
-    $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
-    echo "Request call : $request\n";
-    $return = file_get_contents($request);
-    file_put_contents('historys/'.$steamId, $return);
-  }
+function fetchHistory($startId = null)
+{
+  global $apikey;
+  global $steamId;
+
+  $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
+  if ($startId != null)
+    $request .= "&start_at_match_id=$startId";
+  echo "Fetching match history\n";
+  $return = file_get_contents($request);
+  file_put_contents('historys/'.$steamId, $return);
+  return json_decode($return, true);
+}
+
+if ($offline)
+  $json = json_decode(file_get_contents('historys/'.$steamId), true);
 else
-  {
-    $return = file_get_contents('historys/'.$steamId);
-  }
-$json = json_decode($return, true);
+  $json = fetchHistory();
 $heroList = loadHeroesList();
-echo "Analysing your match history now...\n";
+echo "Getting your stats ready now...\n";
 $heroStats = array();
 $win = 0;
 $loss = 0;
 $numberMatchs = 0;
-foreach ($json['result']['matches'] as $match)
+while (true)
   {
-    // filters
-    if (isset($startTime) && $match['start_time'] < $startTime)
+    if (isset($match))
+      $json = fetchHistory($match['match_id']);
+    if ($json['result']['results_remaining'] <= 0)
       break;
-    if (sizeof($lobbyType) > 0 && !in_array($match['lobby_type'], $lobbyType))
-      continue;
-    if ($numberMatchs == $maxMatchToCount)
+    foreach ($json['result']['matches'] as $match)
+      {
+	// filters
+	if (isset($startTime) && $match['start_time'] < $startTime)
+	  break 2;
+	if (isset($endTime) && $match['start_time'] > $endTime)
+	  continue;
+	if (sizeof($lobbyType) > 0 && !in_array($match['lobby_type'], $lobbyType))
+	  continue;
+	if ($numberMatchs == $maxMatchToCount)
+	  break 2;
+	
+	// get heroStats
+	$array = parseMatch($match);
+	if ($array == -1)
+	  continue;
+	$resultOfMatch = $array['win'] == true ? 'won' : 'lost';
+	echo 'Match '.$match['match_id'].' you played '.$heroList[$array['myHeroId']].' and '.$resultOfMatch."\n";
+	mergeArrays($heroStats, $array);
+	if ($array['win'])
+	  $win++;
+	else
+	  $loss++;
+	$numberMatchs++;
+      }
+    if ($offline)
       break;
-
-    // get heroStats
-    $array = parseMatch($match);
-    if ($array == -1)
-      continue;
-    $resultOfMatch = $array['win'] == true ? 'won' : 'lost';
-    echo 'Match '.$match['match_id'].' you played '.$heroList[$array['myHeroId']].' and '.$resultOfMatch."\n";
-    mergeArrays($heroStats, $array);
-    if ($array['win'])
-      $win++;
-    else
-      $loss++;
-    $numberMatchs++;
   }
 echo "$numberMatchs corresponding to your search!\n";
+if ($numberMatchs == 0)
+  exit(0);
 // Sorting by reverse order
 uasort($heroStats, 'heroStatsSort');
 // We make a nice printing !
