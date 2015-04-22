@@ -15,7 +15,25 @@ $endTime = null;
 $gameCountToStat = 0;
 $maxMaxNumbers = 100;
 $top = 10;
+// Possible values :
+// -1 : invalid
+// 0 : public matchmaking
+// 1 : practice
+// 2 : Tournament
+// 3 : Tutorial
+// 4 : Co-op with bots
+// 5 : Team match
+// 6 : Solo queue
+// 7 : Ranked
+// 8 : Solo Mid 1v1
+$lobbyType = array(7);
+$abusedHeroes = array(2, 95, 35, 8, 25);
 
+// Sorts :
+// $AvailableSorts = array('total', 'against', 'with', 'againstWin', 'againstLost', 'withWin', 'withLost');
+$sort = 'total';
+// order possible values = desc or null
+$order = 'desc';
 
 if (!file_exists('historys/'.$steamId))
   {
@@ -37,13 +55,13 @@ $loss = 0;
 $numberMatchs = 0;
 foreach ($json['result']['matches'] as $match)
   {
+    // filters
     if (isset($startTime) && $match['start_time'] < $startTime)
       break;
-    if (sizeof($match['players']) != 10)
-      {
-	echo 'Match '.$match['match_id'].' is not a standart 5v5'."\n";
-	continue;
-      }
+    if (sizeof($lobbyType) > 0 && !in_array($match['lobby_type'], $lobbyType))
+      continue;
+
+    // get heroStats
     $array = parseMatch($match);
     if ($array == -1)
       continue;
@@ -67,6 +85,8 @@ echo "You won $win and lost $loss games, for a winrate of $winRate\n";
 echo "You faced a total of $numberOfHeroesFaced different heroes\n";
 foreach ($heroStats as $key => $value)
   {
+    if (sizeof($abusedHeroes) > 0 && !in_array($key, $abusedHeroes))
+      continue;
     $hero = $heroList[$key];
     $winWith = $heroStats[$key]['winWith'];
     $lostWith = $heroStats[$key]['lostWith'];
@@ -88,15 +108,51 @@ foreach ($heroStats as $key => $value)
 
 function heroStatsSort($a, $b)
 {
-  // Add custom sort there
+  global $sort;
+  global $order;
+
   $totalA = 0;
   $totalB = 0;
-  foreach ($a as $value)
-    $totalA += $value;
-  foreach ($b as $value)
-    $totalB += $value;
-  // DESC sort
-  return ($totalB - $totalA);
+// $AvailableSorts = array('total', 'against', 'with', 'againstWin', 'againstLost', 'withWin', 'withLost');
+  switch ($sort)
+    {
+    case 'total':
+      foreach ($a as $value)
+	$totalA += $value;
+      foreach ($b as $value)
+	$totalB += $value;
+      break;
+    case 'against':
+      $totalA = $a['winAgainst'] + $a['lostAgainst'];
+      $totalB = $b['winAgainst'] + $b['lostAgainst'];
+      break;
+    case 'with':
+      $totalA = $a['winWith'] + $a['lostWith'];
+      $totalB = $b['winWith'] + $b['lostWith'];
+      break;
+    case 'againstWin':
+      $totalA = $a['winAgainst'];
+      $totalB = $b['winAgainst'];
+      break;
+    case 'againstLost':
+      $totalA = $a['lostAgainst'];
+      $totalB = $b['lostAgainst'];
+      break;
+    case 'withWin':
+      $totalA = $a['winWith'];
+      $totalB = $b['winWith'];
+      break;
+    case 'lostWith':
+      $totalA = $a['lostWith'];
+      $totalB = $b['lostWith'];
+      break;
+    default:
+      return 0;
+    }
+  if ($order === 'desc')
+    return ($totalB - $totalA);
+  else
+    return ($totalA - $totalB);
 }
 
 function mergeArrays(&$heroStats, $array)

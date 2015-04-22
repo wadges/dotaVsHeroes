@@ -1,2 +1,3 @@
-- permettre de match plus de 100 matchs
-- tris customs !
+- handle more than 1 call to getHistory()
+- custom Sorts
+- handle filtering in a more beautiful way
