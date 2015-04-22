@@ -5,13 +5,13 @@ if (!(file_exists('matchs') && is_dir('matchs')))
 if (!(file_exists('historys') && is_dir('historys')))
   shell_exec('mkdir historys');
 
-// Settings
+// Settings - Filters
 
 $apikey = trim(file_get_contents('steamapikey'));
-//$steamId = 109943; // main account laxa
-$steamId = 123;
+$steamId = 109943; // main account laxa
 $matchnumbers = 100;
-//$startTime = strtotime('04/01/2015');
+// be carefull to use good date format according to your region configuration
+$startTime = strtotime('04/01/2015');
 $gameCountToStat = 0;
 $enddate = '';
 $top = 10;
@@ -38,7 +38,7 @@ $win = 0;
 $loss = 0;
 foreach ($json['result']['matches'] as $match)
   {
-    if (isset($startTume) && $match['start_time'] < $startTime)
+    if (isset($startTime) && $match['start_time'] < $startTime)
       break;
     if (sizeof($match['players']) != 10)
       {
@@ -46,6 +46,8 @@ foreach ($json['result']['matches'] as $match)
 	continue;
       }
     $array = parseMatch($match);
+    if ($array == -1)
+      continue;
     $resultOfMatch = $array['win'] == true ? 'won' : 'lost';
     echo 'Match '.$match['match_id'].' you played '.getHeroNameById($array['myHeroId']).' and '.$resultOfMatch."\n";
     mergeArrays($heroStats, $array);
@@ -94,6 +96,7 @@ function heroStatsSort($a, $b)
     $totalA += $value;
   foreach ($b as $value)
     $totalB += $value;
+  // DESC sort
   return ($totalB - $totalA);
 }
 
@@ -152,7 +155,9 @@ function parseMatch($match)
 	  $ret['isRadiant'] = false;
 	}
     }
-  if ($ret['radiant'] && radiantWon($match['match_id']))
+  if (($radiantWon = radiantWon($match['match_id'])) == -1)
+    return -1;
+  if (($ret['isRadiant'] && $radiantWon) || !$ret['isRadiant'] && !$radiantWon)
     $ret['win'] = true;
   else
     $ret['win'] = false;
@@ -184,16 +189,23 @@ function radiantWon($matchId)
     $json = fetchMatchDetails($matchId);
   else
     $json = json_decode(file_get_contents("matchs/$matchId"), true);
-  return $json['result']['radiant_win'];
+  if (isset($json['result']['radiant_win']))
+    return $json['result']['radiant_win'];
+  return -1;
 }
 
 function fetchMatchDetails($id)
 {
   global $apikey;
 
-  echo "Fetching match $id details... ";
+  echo "Fetching match $id ... ";
   $matchDetailRequest = "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=$id&key=$apikey";
   $rawJson = file_get_contents($matchDetailRequest);
+  if ($rawJson === false || strlen($rawJson) == 0)
+    {
+      echo 'An error occured while fetching match '.$id."\n";
+      return array();
+    }
   file_put_contents("matchs/$id", $rawJson);
   echo "Done\n";
   return json_decode($rawJson, true);
