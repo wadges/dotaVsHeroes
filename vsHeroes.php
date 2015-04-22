@@ -29,13 +29,12 @@ else
     $return = file_get_contents('historys/'.$steamId);
   }
 $json = json_decode($return, true);
-$numberMatchs = 0;
-$result = array();
 $heroList = loadHeroesList();
 echo "Analysing your match history now...\n";
 $heroStats = array();
 $win = 0;
 $loss = 0;
+$numberMatchs = 0;
 foreach ($json['result']['matches'] as $match)
   {
     if (isset($startTime) && $match['start_time'] < $startTime)
@@ -49,7 +48,7 @@ foreach ($json['result']['matches'] as $match)
     if ($array == -1)
       continue;
     $resultOfMatch = $array['win'] == true ? 'won' : 'lost';
-    echo 'Match '.$match['match_id'].' you played '.getHeroNameById($array['myHeroId']).' and '.$resultOfMatch."\n";
+    echo 'Match '.$match['match_id'].' you played '.$heroList[$array['myHeroId']].' and '.$resultOfMatch."\n";
     mergeArrays($heroStats, $array);
     if ($array['win'])
       $win++;
@@ -68,7 +67,7 @@ echo "You won $win and lost $loss games, for a winrate of $winRate\n";
 echo "You faced a total of $numberOfHeroesFaced different heroes\n";
 foreach ($heroStats as $key => $value)
   {
-    $hero = getHeroNameById($key);
+    $hero = $heroList[$key];
     $winWith = $heroStats[$key]['winWith'];
     $lostWith = $heroStats[$key]['lostWith'];
     $winAgainst = $heroStats[$key]['winAgainst'];
@@ -164,17 +163,6 @@ function parseMatch($match)
   return $ret;
 }
 
-function getYourHeroId($match)
-{
-  global $steamId;
-
-  foreach ($match['players'] as $player)
-    {
-      if ($player['account_id'] == $steamId)
-	return $player['hero_id'];
-    }
-}
-
 function fetchHeroesList()
 {
   $apikey = trim(file_get_contents('steamapikey'));
@@ -223,18 +211,6 @@ function loadHeroesList()
       $heroList[$hero['id']] = $hero['localized_name'];
     }
   return $heroList;
-}
-
-function getHeroNameById($id)
-{
-  global $heroList;
-
-  return ($heroList[$id]);
-}
-
-function isRadiant($slot)
-{
-  return in_array($slot, array(0, 1, 2, 3, 4));
 }
 
 ?>
