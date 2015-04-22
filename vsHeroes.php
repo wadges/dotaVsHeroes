@@ -77,7 +77,7 @@ foreach ($heroStats as $key => $value)
     if ($totalAgainst > 0)
       echo "You faced $hero $totalAgainst times, lost $lostAgainst times, for a loosing rate of $rateAgainst%\n";
     if ($totalWith > 0)
-      echo "You played with $hero $totalWith times, lost $lostWith times, for a winning rate of $rateWith%\n";
+      echo "You played with a $hero $totalWith times, lost $lostWith times, for a winning rate of $rateWith%\n";
     if ($count == $top)
       break;
     $count++;
