@@ -11,7 +11,8 @@ $apikey = trim(file_get_contents('steamapikey'));
 //$steamId = 109943; // main account laxa
 $steamId = 92080451;
 $matchnumbers = 100;
-$startTime = strtotime('04/01/2015');
+//$startTime = strtotime('04/01/2015');
+$gameCountToStat = 0;
 $enddate = '';
 $top = 10;
 
@@ -37,7 +38,7 @@ $win = 0;
 $loss = 0;
 foreach ($json['result']['matches'] as $match)
   {
-    if ($match['start_time'] < $startTime)
+    if (isset($startTume) && $match['start_time'] < $startTime)
       break;
     if (sizeof($match['players']) != 10)
       {
