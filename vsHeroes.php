@@ -155,7 +155,7 @@ function parseMatch($match)
 	  $ret['isRadiant'] = false;
 	}
     }
-  if (($radiantWon = radiantWon($match['match_id'])) == -1)
+  if (($radiantWon = radiantWon($match['match_id'])) === -1)
     return -1;
   if (($ret['isRadiant'] && $radiantWon) || !$ret['isRadiant'] && !$radiantWon)
     $ret['win'] = true;
