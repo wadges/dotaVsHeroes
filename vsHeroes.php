@@ -8,7 +8,8 @@ if (!(file_exists('historys') && is_dir('historys')))
 // Settings
 
 $apikey = trim(file_get_contents('steamapikey'));
-$steamId = 109943; // 64 BITS OR 32 BITS ID
+//$steamId = 109943; // main account laxa
+$steamId = 92080451;
 $matchnumbers = 100;
 $startTime = strtotime('04/01/2015');
 $enddate = '';
@@ -194,7 +195,7 @@ function fetchMatchDetails($id)
   $rawJson = file_get_contents($matchDetailRequest);
   file_put_contents("matchs/$id", $rawJson);
   echo "Done\n";
-  return json_decode($rawJson);
+  return json_decode($rawJson, true);
 }
 
 function loadHeroesList()
