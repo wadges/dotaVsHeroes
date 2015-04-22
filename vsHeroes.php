@@ -9,7 +9,7 @@ if (!(file_exists('historys') && is_dir('historys')))
 
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
-$steamId = 92080451;
+$steamId = 27137503;
 // be carefull to use good date format according to your region configuration
 $startTime = strtotime('04/01/2015');
 $endTime = null;
@@ -97,10 +97,10 @@ foreach ($heroStats as $key => $value)
     $totalAgainst = $winAgainst + $lostAgainst;
     $totalWith = $winWith + $lostWith;
     $total = $totalAgainst + $totalWith;
-    $rateAgainst = $totalAgainst > 0 ? round($lostAgainst / $totalAgainst * 100, 2) : 0;
+    $rateAgainst = $totalAgainst > 0 ? round($winAgainst / $totalAgainst * 100, 2) : 0;
     $rateWith = $totalWith > 0 ? round($winWith / $totalWith * 100, 2) : 0;
     if ($totalAgainst > 0)
-      echo "You faced $hero $totalAgainst times, lost $lostAgainst times, for a losing rate of $rateAgainst%\n";
+      echo "You faced $hero $totalAgainst times, lost $lostAgainst times, for a winning rate of $rateAgainst%\n";
     if ($totalWith > 0)
       echo "You played with a $hero $totalWith times, lost $lostWith times, for a winning rate of $rateWith%\n";
     if ($count == $top)

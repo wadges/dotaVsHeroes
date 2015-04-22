@@ -1,3 +1,2 @@
 - handle more than 1 call to getHistory()
-- custom Sorts
 - handle filtering in a more beautiful way
