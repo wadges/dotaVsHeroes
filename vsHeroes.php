@@ -10,7 +10,7 @@ if (!(file_exists('historys') && is_dir('historys')))
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // 64 BITS OR 32 BITS ID
 $matchnumbers = 100;
-$startTime = strtotime('01/04/2015');
+$startTime = strtotime('04/01/2015');
 $enddate = '';
 $top = 10;
 
@@ -45,7 +45,7 @@ foreach ($json['result']['matches'] as $match)
       }
     $array = parseMatch($match);
     $resultOfMatch = $array['win'] == true ? 'won' : 'lost';
-    echo 'Match '.$match['match_id'].' is a match, you played '.getHeroNameById($array['myHeroId']).' and '.$resultOfMatch."\n";
+    echo 'Match '.$match['match_id'].' you played '.getHeroNameById($array['myHeroId']).' and '.$resultOfMatch."\n";
     mergeArrays($heroStats, $array);
     if ($array['win'])
       $win++;
@@ -55,25 +55,45 @@ foreach ($json['result']['matches'] as $match)
   }
 echo "$numberMatchs corresponding to your search!\n";
 // Sorting by reverse order
-arsort($heroStats);
+uasort($heroStats, 'heroStatsSort');
 // We make a nice printing !
 $count = 1;
-$winRate = $win / $numberMatchs * 100;
+$winRate = round($win / $numberMatchs * 100, 2);
 $numberOfHeroesFaced = sizeof($heroStats);
 echo "You won $win and lost $loss games, for a winrate of $winRate\n";
-echo "Now the heroes stats :\n";
 echo "You faced a total of $numberOfHeroesFaced different heroes\n";
 foreach ($heroStats as $key => $value)
   {
     $hero = getHeroNameById($key);
-    $win = $heroStats[$key]['winWith'];
-    $loss = $heroStats[$key]['lostAgainst'];
-    $total = $win + $loss;
-    echo "You faced $hero $ times gainst $hero\n";
+    $winWith = $heroStats[$key]['winWith'];
+    $lostWith = $heroStats[$key]['lostWith'];
+    $winAgainst = $heroStats[$key]['winAgainst'];
+    $lostAgainst = $heroStats[$key]['lostAgainst'];
+    $totalAgainst = $winAgainst + $lostAgainst;
+    $totalWith = $winWith + $lostWith;
+    $total = $totalAgainst + $totalWith;
+    $rateAgainst = $totalAgainst > 0 ? round($lostAgainst / $totalAgainst * 100, 2) : 0;
+    $rateWith = $totalWith > 0 ? round($winWith / $totalWith * 100, 2) : 0;
+    if ($totalAgainst > 0)
+      echo "You faced $hero $totalAgainst times, lost $lostAgainst times, for a loosing rate of $rateAgainst%\n";
+    if ($totalWith > 0)
+      echo "You played with $hero $totalWith times, lost $lostWith times, for a winning rate of $rateWith%\n";
     if ($count == $top)
       break;
     $count++;
   }
+
+function heroStatsSort($a, $b)
+{
+  // Add custom sort there
+  $totalA = 0;
+  $totalB = 0;
+  foreach ($a as $value)
+    $totalA += $value;
+  foreach ($b as $value)
+    $totalB += $value;
+  return ($totalB - $totalA);
+}
 
 function mergeArrays(&$heroStats, $array)
 {
@@ -93,11 +113,15 @@ function mergeArrays(&$heroStats, $array)
   foreach ($array['dire'] as $heroId)
     {
       if (!isset($heroStats[$heroId]))
-	$heroStats[$heroId] = array('lostAgainst' => 0, 'winWith' => 0);
+	$heroStats[$heroId] = array('lostAgainst' => 0, 'winWith' => 0, 'lostWith' => 0, 'winAgainst' => 0);
       if ($array['win'] && $array['isRadiant'])
-	$heroStats[$heroId]['winWith']++;
-      else
+	$heroStats[$heroId]['winAgainst']++;
+      else if (!$array['win'] && $array['isRadiant'])
 	$heroStats[$heroId]['lostAgainst']++;
+      else if ($array['win'] && !$array['isRadiant'])
+	$heroStats[$heroId]['winWith']++;
+      else if (!$array['win'] && !$array['isRadiant'])
+	$heroStats[$heroId]['lostWith']++;
     }
 }
 
