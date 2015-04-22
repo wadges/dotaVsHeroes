@@ -9,11 +9,11 @@ if (!(file_exists('historys') && is_dir('historys')))
 
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
+$steamId = 92080451;
 // be carefull to use good date format according to your region configuration
 $startTime = strtotime('04/01/2015');
 $endTime = null;
-$gameCountToStat = 0;
-$maxMaxNumbers = 100;
+$maxMatchToCount = 50;
 $top = 10;
 // Possible values :
 // -1 : invalid
@@ -60,6 +60,8 @@ foreach ($json['result']['matches'] as $match)
       break;
     if (sizeof($lobbyType) > 0 && !in_array($match['lobby_type'], $lobbyType))
       continue;
+    if ($numberMatchs == $maxMatchToCount)
+      break;
 
     // get heroStats
     $array = parseMatch($match);
