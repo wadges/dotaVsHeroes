@@ -12,7 +12,7 @@ $steamId = 109943; // main account laxa
 // be carefull to use good date format according to your region configuration
 //$startTime = strtotime('04/01/2015');
 $endTime = strtotime('12/12/2016');
-$maxMatchToCount = 120;
+$maxMatchToCount = 4000;
 $top = 10;
 $offline = false;
 // Possible values :
@@ -27,7 +27,7 @@ $offline = false;
 // 7 : Ranked
 // 8 : Solo Mid 1v1
 $lobbyType = array(7);
-$abusedHeroes = array(2, 95, 35, 8, 25);
+$heroFilter = array(2, 95, 35, 8, 25);
 
 // Sorts :
 // $AvailableSorts = array('total', 'against', 'with', 'againstWin', 'againstLost', 'withWin', 'withLost');
@@ -106,7 +106,7 @@ echo "You won $win and lost $loss games, for a winrate of $winRate\n";
 echo "You faced a total of $numberOfHeroesFaced different heroes\n";
 foreach ($heroStats as $key => $value)
   {
-    if (sizeof($abusedHeroes) > 0 && !in_array($key, $abusedHeroes))
+    if (sizeof($heroFilter) > 0 && !in_array($key, $heroFilter))
       continue;
     $hero = $heroList[$key];
     $winWith = $heroStats[$key]['winWith'];
