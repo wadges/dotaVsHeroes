@@ -1,2 +1,5 @@
-- handle more than 1 call to getHistory()
 - handle filtering in a more beautiful way
+- improve sort by using function ptr
+- performance from API calls
+- add license file
+- update readme.md
