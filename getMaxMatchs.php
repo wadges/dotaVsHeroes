@@ -65,7 +65,7 @@ foreach ($heroList as $key => $value)
   }
 echo "Fetched $numberMatchs matchs!\n";
 
-function fetchHistory($startId, $heroId))
+function fetchHistory($startId, $heroId)
 {
   global $apikey;
   global $steamId;
@@ -109,7 +109,6 @@ function fetchMatchDetails($id)
     }
   file_put_contents("matchs/$id", $rawJson);
   echo "Done\n";
-  return json_decode($rawJson, true);
 }
 
 function loadHeroesList()
