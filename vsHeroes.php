@@ -113,7 +113,6 @@ while (true)
     if ($offline)
       break;
   }
-echo 'test: '.$match['start_time']."\n";
 echo "$numberMatchs corresponding to your search!\n";
 if ($numberMatchs == 0)
   exit(0);
