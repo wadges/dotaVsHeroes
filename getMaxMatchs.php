@@ -38,10 +38,10 @@ $sort = 'Total';
 // order possible values = desc or null
 $order = 'desc';
 
-
 // Script is starting here :
 $heroList = loadHeroesList();
 $numberMatchs = 0;
+$failedFetch = 0;
 foreach ($heroList as $key => $value)
   {
     echo "Fetching matchs with $value...\n";
@@ -65,6 +65,7 @@ foreach ($heroList as $key => $value)
       } while ($json['result']['results_remaining'] > 0);
   }
 echo "Fetched $numberMatchs matchs!\n";
+echo "Failed to fetch $failedFetch matchs!\n";
 
 function fetchHistory($startId, $heroId)
 {
@@ -80,7 +81,7 @@ function fetchHistory($startId, $heroId)
   if ($debug)
     echo $request."\n";
   echo "Fetching match history\n";
-  $return = file_get_contents($request);
+  $return = fetchUrl($request);
   file_put_contents('historys/'.$steamId, $return);
   $json = json_decode($return, true);
   if ($debug)
@@ -92,20 +93,23 @@ function fetchHeroesList()
 {
   $apikey = trim(file_get_contents('steamapikey'));
   $request = "https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key=$apikey&language=en_us";
-  $return = file_get_contents($request);
+  $return = fetchUrl($request);
   file_put_contents('herolistjson', $return);
 }
 
 function fetchMatchDetails($id)
 {
+  global $failedFetch;
   global $apikey;
 
-  echo "Fetching match $id ... ";
+  echo "Fetching match $id ...";
   $matchDetailRequest = "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=$id&key=$apikey";
-  $rawJson = file_get_contents($matchDetailRequest);
+  //  $rawJson = file_get_contents($matchDetailRequest);
+  $rawJson = fetchUrl($matchDetailRequest);
   if ($rawJson === false || strlen($rawJson) == 0)
     {
       echo 'An error occured while fetching match '.$id."\n";
+      $failedFetch++;
       return array();
     }
   file_put_contents("matchs/$id", $rawJson);
@@ -124,6 +128,32 @@ function loadHeroesList()
       $heroList[$hero['id']] = $hero['localized_name'];
     }
   return $heroList;
+}
+
+function fetchUrl($uri, $try = 1)
+{
+  if ($try === 4)
+    return null;
+  $handle = curl_init();
+
+  curl_setopt($handle, CURLOPT_URL, $uri);
+  curl_setopt($handle, CURLOPT_POST, false);
+  curl_setopt($handle, CURLOPT_BINARYTRANSFER, false);
+  curl_setopt($handle, CURLOPT_HEADER, true);
+  curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+
+  $response = curl_exec($handle);
+  $hlength  = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
+  $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+  $body     = substr($response, $hlength);
+
+  if ($httpCode === 503)
+    {
+      echo "Received 503 error on try $try for $uri\n";
+      return fetchUrl($uri, ++$try);
+    }
+  return $body;
 }
 
 ?>

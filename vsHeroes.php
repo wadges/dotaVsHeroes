@@ -39,26 +39,6 @@ $sort = 'Total';
 // order possible values = desc or null
 $order = 'desc';
 
-function fetchHistory($startId = null)
-{
-  global $apikey;
-  global $steamId;
-  global $debug;
-
-  $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
-  if ($startId != null)
-    $request .= "&start_at_match_id=$startId";
-  if ($debug)
-    echo $request."\n";
-  echo "Fetching match history\n";
-  $return = file_get_contents($request);
-  file_put_contents('historys/'.$steamId, $return);
-  $json = json_decode($return, true);
-  if ($debug)
-    echo $json['result']['num_results'].' results on '.$json['result']['total_results'].' '.$json['result']['results_remaining']." still results to fetch\n";
-  return $json;
-}
-
 if ($offline)
   {
     if (!file_exists('historys/'.$steamId))
@@ -147,6 +127,26 @@ foreach ($heroStats as $key => $value)
     $count++;
   }
 
+function fetchHistory($startId = null)
+{
+  global $apikey;
+  global $steamId;
+  global $debug;
+
+  $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
+  if ($startId != null)
+    $request .= "&start_at_match_id=$startId";
+  if ($debug)
+    echo $request."\n";
+  echo "Fetching match history\n";
+  $return = fetchUrl($request);
+  file_put_contents('historys/'.$steamId, $return);
+  $json = json_decode($return, true);
+  if ($debug)
+    echo $json['result']['num_results'].' results on '.$json['result']['total_results'].' '.$json['result']['results_remaining']." still results to fetch\n";
+  return $json;
+}
+
 function mergeArrays(&$heroStats, $array)
 {
   foreach ($array['radiant'] as $heroId)
@@ -213,9 +213,10 @@ function parseMatch($match)
 
 function fetchHeroesList()
 {
-  $apikey = trim(file_get_contents('steamapikey'));
+  global $apikey;
+
   $request = "https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key=$apikey&language=en_us";
-  $return = file_get_contents($request);
+  $return = fetchUrl($request);
   file_put_contents('herolistjson', $return);
 }
 
@@ -234,9 +235,9 @@ function fetchMatchDetails($id)
 {
   global $apikey;
 
-  echo "Fetching match $id ... ";
+  echo "Fetching match $id ...";
   $matchDetailRequest = "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=$id&key=$apikey";
-  $rawJson = file_get_contents($matchDetailRequest);
+  $rawJson = fetchUrl($matchDetailRequest);
   if ($rawJson === false || strlen($rawJson) == 0)
     {
       echo 'An error occured while fetching match '.$id."\n";
@@ -259,6 +260,32 @@ function loadHeroesList()
       $heroList[$hero['id']] = $hero['localized_name'];
     }
   return $heroList;
+}
+
+function fetchUrl($uri, $try = 1)
+{
+  if ($try === 4)
+    return null;
+  $handle = curl_init();
+
+  curl_setopt($handle, CURLOPT_URL, $uri);
+  curl_setopt($handle, CURLOPT_POST, false);
+  curl_setopt($handle, CURLOPT_BINARYTRANSFER, false);
+  curl_setopt($handle, CURLOPT_HEADER, true);
+  curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
+
+  $response = curl_exec($handle);
+  $hlength  = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
+  $httpCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+  $body     = substr($response, $hlength);
+
+  if ($httpCode === 503)
+    {
+      echo "Received 503 error on try $try for $uri\n";
+      return fetchUrl($uri, ++$try);
+    }
+  return $body;
 }
 
 ?>
