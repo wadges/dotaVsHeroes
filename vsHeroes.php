@@ -60,7 +60,7 @@ if ($offline)
 else
   $json = fetchHistory();
 if ($debug)
-  echo 'Total results with last request'.$json['result']['total_results']."\n";
+  echo 'Total results with last request '.$json['result']['total_results']."\n";
 $heroList = loadHeroesList();
 echo "Getting your stats ready now...\n";
 $heroStats = array();
