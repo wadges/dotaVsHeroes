@@ -1,5 +1,7 @@
 <?php
 
+require_once('sortFunctions.php');
+
 if (!(file_exists('matchs') && is_dir('matchs')))
   shell_exec('mkdir matchs');
 if (!(file_exists('historys') && is_dir('historys')))
@@ -10,11 +12,12 @@ if (!(file_exists('historys') && is_dir('historys')))
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
 // be carefull to use good date format according to your region configuration
-//$startTime = strtotime('04/01/2015');
+$startTime = strtotime('04/01/2015');
 $endTime = strtotime('12/12/2016');
 $maxMatchToCount = 4000;
 $top = 10;
 $offline = false;
+$debug = true;
 // Possible values :
 // -1 : invalid
 // 0 : public matchmaking
@@ -27,11 +30,11 @@ $offline = false;
 // 7 : Ranked
 // 8 : Solo Mid 1v1
 $lobbyType = array(7);
+// List of heroes to display stats about by their Id
 $heroFilter = array(2, 95, 35, 8, 25);
-
 // Sorts :
-// $AvailableSorts = array('total', 'against', 'with', 'againstWin', 'againstLost', 'withWin', 'withLost');
-$sort = 'total';
+// $AvailableSorts = array('Total', 'Against', 'With', 'AgainstWin', 'AgainstLost', 'WithWin', 'WithLost');
+$sort = 'Total';
 // order possible values = desc or null
 $order = 'desc';
 
@@ -40,7 +43,8 @@ function fetchHistory($startId = null)
   global $apikey;
   global $steamId;
 
-  $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
+  if ($debug)
+    $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
   if ($startId != null)
     $request .= "&start_at_match_id=$startId";
   echo "Fetching match history\n";
@@ -53,6 +57,8 @@ if ($offline)
   $json = json_decode(file_get_contents('historys/'.$steamId), true);
 else
   $json = fetchHistory();
+if ($debug)
+  echo 'Total results with last request'.$json['result']['total_results']."\n";
 $heroList = loadHeroesList();
 echo "Getting your stats ready now...\n";
 $heroStats = array();
@@ -76,7 +82,7 @@ while (true)
 	  continue;
 	if ($numberMatchs == $maxMatchToCount)
 	  break 2;
-	
+
 	// get heroStats
 	$array = parseMatch($match);
 	if ($array == -1)
@@ -96,9 +102,9 @@ while (true)
 echo "$numberMatchs corresponding to your search!\n";
 if ($numberMatchs == 0)
   exit(0);
-// Sorting by reverse order
+// Sorting using $sort and $order
 uasort($heroStats, 'heroStatsSort');
-// We make a nice printing !
+// Display part
 $count = 1;
 $winRate = round($win / $numberMatchs * 100, 2);
 $numberOfHeroesFaced = sizeof($heroStats);
@@ -126,55 +132,6 @@ foreach ($heroStats as $key => $value)
       break;
     $count++;
   }
-
-function heroStatsSort($a, $b)
-{
-  global $sort;
-  global $order;
-
-  $totalA = 0;
-  $totalB = 0;
-// $AvailableSorts = array('total', 'against', 'with', 'againstWin', 'againstLost', 'withWin', 'withLost');
-  switch ($sort)
-    {
-    case 'total':
-      foreach ($a as $value)
-	$totalA += $value;
-      foreach ($b as $value)
-	$totalB += $value;
-      break;
-    case 'against':
-      $totalA = $a['winAgainst'] + $a['lostAgainst'];
-      $totalB = $b['winAgainst'] + $b['lostAgainst'];
-      break;
-    case 'with':
-      $totalA = $a['winWith'] + $a['lostWith'];
-      $totalB = $b['winWith'] + $b['lostWith'];
-      break;
-    case 'againstWin':
-      $totalA = $a['winAgainst'];
-      $totalB = $b['winAgainst'];
-      break;
-    case 'againstLost':
-      $totalA = $a['lostAgainst'];
-      $totalB = $b['lostAgainst'];
-      break;
-    case 'withWin':
-      $totalA = $a['winWith'];
-      $totalB = $b['winWith'];
-      break;
-    case 'lostWith':
-      $totalA = $a['lostWith'];
-      $totalB = $b['lostWith'];
-      break;
-    default:
-      return 0;
-    }
-  if ($order === 'desc')
-    return ($totalB - $totalA);
-  else
-    return ($totalA - $totalB);
-}
 
 function mergeArrays(&$heroStats, $array)
 {
