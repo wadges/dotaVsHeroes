@@ -1,0 +1,7 @@
+A faire :
+
+sur getDatas :
+
+Construire un historique ENTIER du joueur sur les data recuperes :
+- function qui recupere le dernier match ID
+- trier cet historique par startTime/matchId
