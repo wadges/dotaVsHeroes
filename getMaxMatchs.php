@@ -11,7 +11,6 @@ if (!(file_exists('historys') && is_dir('historys')))
 
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
-$steamId = 135125622; // smurf laxa
 // be carefull to use good date format according to your region configuration
 /* $startTime = strtotime('04/01/2015'); */
 /* $endTime = strtotime('12/12/2016'); */
@@ -41,37 +40,59 @@ $sort = 'Total';
 $order = 'desc';
 
 // Script is starting here :
-$heroList = loadHeroesList();
 $numberMatchs = 0;
 $failedFetch = 0;
-foreach ($heroList as $key => $value)
+echo "Checking match history size to choose fetching method.\n";
+$json = fetchHistory();
+// API limit return of 500 matchs history
+if ($json['result']['total_results'] < 500)
   {
-    echo "Fetching matchs with $value...\n";
-    $json = fetchHistory(null, $key);
-    echo $json['result']['total_results']." total results to fetch for that hero\n";
-    if (isset($match))
-      unset($match);
-    do
-      {
-	if (isset($match))
-	  $json = fetchHistory($match['match_id'], $key);
-	foreach ($json['result']['matches'] as $match)
-	  {
-	    $matchId = $match['match_id'];
-	    if (!file_exists("matchs/$matchId"))
-	      {
-		fetchMatchDetails($matchId);
-		$numberMatchs++;
-	      }
-	  }
-      } while ($json['result']['results_remaining'] > 0);
+    echo 'Less than 500 matches to fetch, fetching them directly now!'."\n";
+    fetchMatchsWithCriteria($json, $numberMatchs);
+  }
+else
+  {
+    echo 'More than 500 matches fo fetch, fetching by hero!'."\n";
+    fetchMatchsByHero($numberMatchs);
   }
 echo "Fetched $numberMatchs matchs!\n";
 echo "Failed to fetch $failedFetch matchs!\n";
 // END OF SCRIPT
 
+function fetchMatchsWithCriteria($json, &$numberMatchs, $key = null)
+{
+  global $numberMatchs;
 
-function fetchHistory($startId, $heroId)
+  do
+    {
+      if (isset($match))
+	$json = fetchHistory($match['match_id'], $key);
+      foreach ($json['result']['matches'] as $match)
+	{
+	  $matchId = $match['match_id'];
+	  if (!file_exists("matchs/$matchId"))
+	    {
+	      fetchMatchDetails($matchId);
+	      $numberMatchs++;
+	    }
+	}
+    } while ($json['result']['results_remaining'] > 0);
+}
+
+function fetchMatchsByHero(&$numberMatchs)
+{
+  $heroList = loadHeroesList();
+
+  foreach ($heroList as $key => $value)
+    {
+      echo "Fetching matchs with $value...\n";
+      $json = fetchHistory(null, $key);
+      echo $json['result']['total_results']." total results to fetch for that hero\n";
+      fetchMatchsWithCriteria($json, $numberMatchs, $key);
+    }
+}
+
+function fetchHistory($startId = null, $heroId = null)
 {
   global $apikey;
   global $steamId;
@@ -89,7 +110,7 @@ function fetchHistory($startId, $heroId)
   file_put_contents('historys/'.$steamId, $return);
   $json = json_decode($return, true);
   if ($debug)
-    echo $json['result']['num_results'].' results on '.$json['result']['total_results'].' '.$json['result']['results_remaining']." still results to fetch\n";
+    echo $json['result']['num_results'].' results on '.$json['result']['total_results'].', '.$json['result']['results_remaining']." more results to fetch\n";
   return $json;
 }
 
@@ -106,7 +127,7 @@ function fetchMatchDetails($id)
   global $failedFetch;
   global $apikey;
 
-  echo "Fetching match $id ...";
+  echo "Fetching match $id...";
   $matchDetailRequest = "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=$id&key=$apikey";
   //  $rawJson = file_get_contents($matchDetailRequest);
   $rawJson = fetchUrl($matchDetailRequest);
@@ -128,9 +149,7 @@ function loadHeroesList()
   $json = json_decode($heroList, true);
   $heroList = array();
   foreach ($json['result']['heroes'] as $hero)
-    {
-      $heroList[$hero['id']] = $hero['localized_name'];
-    }
+    $heroList[$hero['id']] = $hero['localized_name'];
   return $heroList;
 }
 
