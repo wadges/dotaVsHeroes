@@ -40,6 +40,8 @@ $sort = 'Total';
 // order possible values = desc or null
 $order = 'desc';
 
+
+// Start of script
 if ($offline)
   {
     if (!file_exists('historys/'.$steamId))
@@ -57,6 +59,7 @@ $heroStats = array();
 $win = 0;
 $loss = 0;
 $numberMatchs = 0;
+// Main loop
 while (true)
   {
     if (isset($match))
@@ -127,6 +130,7 @@ foreach ($heroStats as $key => $value)
       break;
     $count++;
   }
+// End of script
 
 function fetchHistory($startId = null)
 {

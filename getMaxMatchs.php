@@ -11,6 +11,7 @@ if (!(file_exists('historys') && is_dir('historys')))
 
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
+$steamId = 135125622; // smurf laxa
 // be carefull to use good date format according to your region configuration
 /* $startTime = strtotime('04/01/2015'); */
 /* $endTime = strtotime('12/12/2016'); */
@@ -67,6 +68,8 @@ foreach ($heroList as $key => $value)
   }
 echo "Fetched $numberMatchs matchs!\n";
 echo "Failed to fetch $failedFetch matchs!\n";
+// END OF SCRIPT
+
 
 function fetchHistory($startId, $heroId)
 {
