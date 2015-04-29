@@ -12,8 +12,8 @@ if (!(file_exists('historys') && is_dir('historys')))
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
 // be carefull to use good date format according to your region configuration
-$startTime = strtotime('04/01/2015');
-$endTime = strtotime('12/12/2016');
+/* $startTime = strtotime('04/01/2015'); */
+/* $endTime = strtotime('12/12/2016'); */
 $maxMatchToCount = 4000;
 $top = 10;
 $offline = false;
@@ -42,11 +42,13 @@ function fetchHistory($startId = null)
 {
   global $apikey;
   global $steamId;
+  global $debug;
 
-  if ($debug)
-    $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
+  $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
   if ($startId != null)
     $request .= "&start_at_match_id=$startId";
+  if ($debug)
+    echo $request."\n";
   echo "Fetching match history\n";
   $return = file_get_contents($request);
   file_put_contents('historys/'.$steamId, $return);
