@@ -1,6 +1,6 @@
 <?php
 
-$lastRequestTime;
+$lastRequestTime = 0;
 
 function fetchUrl($uri, $try = 1)
 {
@@ -17,12 +17,10 @@ function fetchUrl($uri, $try = 1)
   curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
   curl_setopt($handle, CURLOPT_CONNECTTIMEOUT, 10);
 
-  if (isset($lastRequestTime))
-    {
-      $timeElapsed = microtime(true) - $lastRequestTime;
-      if ($timeElapsed < 1000000)
-	usleep(1000000 - $timeElapsed);
-    }
+  $timeElapsed = microtime(true) - $lastRequestTime;
+  if ($timeElapsed < 1000000)
+    usleep(1000000 - $timeElapsed);
+
   $lastRequestTime = microtime(true);
   $response = curl_exec($handle);
   $hlength  = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
