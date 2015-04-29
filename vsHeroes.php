@@ -3,8 +3,8 @@
 require_once('sortFunctions.php');
 require_once('fetchUrl.php');
 
-if (!(file_exists('matchs') && is_dir('matchs')))
-  shell_exec('mkdir matchs');
+if (!(file_exists('matches') && is_dir('matches')))
+  shell_exec('mkdir matches');
 if (!(file_exists('historys') && is_dir('historys')))
   shell_exec('mkdir historys');
 
@@ -58,7 +58,7 @@ echo "Getting your stats ready now...\n";
 $heroStats = array();
 $win = 0;
 $loss = 0;
-$numberMatchs = 0;
+$numberMatches = 0;
 // Main loop
 while (true)
   {
@@ -75,7 +75,7 @@ while (true)
 	  continue;
 	if (sizeof($lobbyType) > 0 && !in_array($match['lobby_type'], $lobbyType))
 	  continue;
-	if ($numberMatchs == $maxMatchToCount)
+	if ($numberMatches == $maxMatchToCount)
 	  break 2;
 
 	// get heroStats
@@ -90,15 +90,15 @@ while (true)
 	  $win++;
 	else
 	  $loss++;
-	$numberMatchs++;
+	$numberMatches++;
 	if ($verbose)
 	  echo date('d/m/Y', $match['start_time'])."\n";
       }
     if ($offline)
       break;
   }
-echo "$numberMatchs corresponding to your search!\n";
-if ($numberMatchs == 0)
+echo "$numberMatches corresponding to your search!\n";
+if ($numberMatches == 0)
   exit(0);
 // Sorting using $sort and $order
 uasort($heroStats, 'heroStatsSort');
@@ -107,10 +107,10 @@ displayStats($heroStats);
 
 function displayStats($heroStats)
 {
-  global $top, $numberMatchs, $win, $loss, $heroFilter, $heroList;
+  global $top, $numberMatches, $win, $loss, $heroFilter, $heroList;
 
   $count = 1;
-  $winRate = round($win / $numberMatchs * 100, 2);
+  $winRate = round($win / $numberMatches * 100, 2);
   $numberOfHeroesFaced = sizeof($heroStats);
   echo "You won $win and lost $loss games, for a winrate of $winRate%\n";
   echo "You faced a total of $numberOfHeroesFaced different heroes\n";
@@ -233,10 +233,10 @@ function fetchHeroesList()
 
 function radiantWon($matchId)
 {
-  if (!file_exists("matchs/$matchId"))
+  if (!file_exists("matches/$matchId"))
     $json = fetchMatchDetails($matchId);
   else
-    $json = json_decode(file_get_contents("matchs/$matchId"), true);
+    $json = json_decode(file_get_contents("matches/$matchId"), true);
   if (isset($json['result']['radiant_win']))
     return $json['result']['radiant_win'];
   return -1;
@@ -254,7 +254,7 @@ function fetchMatchDetails($id)
       echo 'An error occured while fetching match '.$id."\n";
       return array();
     }
-  file_put_contents("matchs/$id", $rawJson);
+  file_put_contents("matches/$id", $rawJson);
   echo "Done\n";
   return json_decode($rawJson, true);
 }

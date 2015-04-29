@@ -2,8 +2,8 @@
 
 require_once('fetchUrl.php');
 
-if (!(file_exists('matchs') && is_dir('matchs')))
-  shell_exec('mkdir matchs');
+if (!(file_exists('matches') && is_dir('matches')))
+  shell_exec('mkdir matches');
 if (!(file_exists('historys') && is_dir('historys')))
   shell_exec('mkdir historys');
 
@@ -40,28 +40,28 @@ $sort = 'Total';
 $order = 'desc';
 
 // Script is starting here :
-$numberMatchs = 0;
+$numberMatches = 0;
 $failedFetch = 0;
 echo "Checking match history size to choose fetching method.\n";
 $json = fetchHistory();
-// API limit return of 500 matchs history
+// API limit return of 500 matches history
 if ($json['result']['total_results'] < 500)
   {
     echo 'Less than 500 matches to fetch, fetching them directly now!'."\n";
-    fetchMatchsWithCriteria($json, $numberMatchs);
+    fetchMatchesWithCriteria($json, $numberMatches);
   }
 else
   {
     echo 'More than 500 matches fo fetch, fetching by hero!'."\n";
-    fetchMatchsByHero($numberMatchs);
+    fetchMatchesByHero($numberMatches);
   }
-echo "Fetched $numberMatchs matchs!\n";
-echo "Failed to fetch $failedFetch matchs!\n";
+echo "Fetched $numberMatches matches!\n";
+echo "Failed to fetch $failedFetch matches!\n";
 // END OF SCRIPT
 
-function fetchMatchsWithCriteria($json, &$numberMatchs, $key = null)
+function fetchMatchesWithCriteria($json, &$numberMatches, $key = null)
 {
-  global $numberMatchs;
+  global $numberMatches;
 
   do
     {
@@ -70,25 +70,25 @@ function fetchMatchsWithCriteria($json, &$numberMatchs, $key = null)
       foreach ($json['result']['matches'] as $match)
 	{
 	  $matchId = $match['match_id'];
-	  if (!file_exists("matchs/$matchId"))
+	  if (!file_exists("matches/$matchId"))
 	    {
 	      fetchMatchDetails($matchId);
-	      $numberMatchs++;
+	      $numberMatches++;
 	    }
 	}
     } while ($json['result']['results_remaining'] > 0);
 }
 
-function fetchMatchsByHero(&$numberMatchs)
+function fetchMatchesByHero(&$numberMatches)
 {
   $heroList = loadHeroesList();
 
   foreach ($heroList as $key => $value)
     {
-      echo "Fetching matchs with $value...\n";
+      echo "Fetching matches with $value...\n";
       $json = fetchHistory(null, $key);
       echo $json['result']['total_results']." total results to fetch for that hero\n";
-      fetchMatchsWithCriteria($json, $numberMatchs, $key);
+      fetchMatchesWithCriteria($json, $numberMatches, $key);
     }
 }
 
@@ -137,7 +137,7 @@ function fetchMatchDetails($id)
       $failedFetch++;
       return array();
     }
-  file_put_contents("matchs/$id", $rawJson);
+  file_put_contents("matches/$id", $rawJson);
   echo "Done\n";
 }
 
