@@ -56,7 +56,14 @@ function fetchHistory($startId = null)
 }
 
 if ($offline)
-  $json = json_decode(file_get_contents('historys/'.$steamId), true);
+  {
+    if (!file_exists('historys/'.$steamId))
+      {
+	echo "Can't do offline without a history of the player requested\n";
+	exit(0);
+      }
+    $json = json_decode(file_get_contents('historys/'.$steamId), true);
+  }
 else
   $json = fetchHistory();
 if ($debug)
