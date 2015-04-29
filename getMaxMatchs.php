@@ -41,13 +41,14 @@ $order = 'desc';
 
 // Script is starting here :
 $heroList = loadHeroesList();
-echo "Getting your stats ready now...\n";
 $numberMatchs = 0;
 foreach ($heroList as $key => $value)
   {
     echo "Fetching matchs with $value...\n";
     $json = fetchHistory(null, $key);
     echo $json['result']['total_results']." total results to fetch for that hero\n";
+    if (isset($match))
+      unset($match);
     do
       {
 	if (isset($match))
@@ -61,7 +62,7 @@ foreach ($heroList as $key => $value)
 		$numberMatchs++;
 	      }
 	  }
-      } while ($json['result']['results_remaining'] <= 0);
+      } while ($json['result']['results_remaining'] > 0);
   }
 echo "Fetched $numberMatchs matchs!\n";
 
@@ -72,7 +73,7 @@ function fetchHistory($startId, $heroId)
   global $debug;
 
   $request = "https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?account_id=$steamId&key=$apikey";
-  if ($startId != null)
+  if ($heroId != null)
     $request .= "&hero_id=$heroId";
   if ($startId != null)
     $request .= "&start_at_match_id=$startId";
