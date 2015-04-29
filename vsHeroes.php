@@ -102,35 +102,41 @@ if ($numberMatchs == 0)
   exit(0);
 // Sorting using $sort and $order
 uasort($heroStats, 'heroStatsSort');
-// Display part
-$count = 1;
-$winRate = round($win / $numberMatchs * 100, 2);
-$numberOfHeroesFaced = sizeof($heroStats);
-echo "You won $win and lost $loss games, for a winrate of $winRate\n";
-echo "You faced a total of $numberOfHeroesFaced different heroes\n";
-foreach ($heroStats as $key => $value)
-  {
-    if (sizeof($heroFilter) > 0 && !in_array($key, $heroFilter))
-      continue;
-    $hero = $heroList[$key];
-    $winWith = $heroStats[$key]['winWith'];
-    $lostWith = $heroStats[$key]['lostWith'];
-    $winAgainst = $heroStats[$key]['winAgainst'];
-    $lostAgainst = $heroStats[$key]['lostAgainst'];
-    $totalAgainst = $winAgainst + $lostAgainst;
-    $totalWith = $winWith + $lostWith;
-    $total = $totalAgainst + $totalWith;
-    $rateAgainst = $totalAgainst > 0 ? round($winAgainst / $totalAgainst * 100, 2) : 0;
-    $rateWith = $totalWith > 0 ? round($winWith / $totalWith * 100, 2) : 0;
-    if ($totalAgainst > 0)
-      echo "You faced $hero $totalAgainst times, lost $lostAgainst times, for a winning rate of $rateAgainst%\n";
-    if ($totalWith > 0)
-      echo "You played with a $hero $totalWith times, lost $lostWith times, for a winning rate of $rateWith%\n";
-    if ($count == $top)
-      break;
-    $count++;
-  }
+displayStats($heroStats);
 // End of script
+
+function displayStats($heroStats)
+{
+  global $top, $numberMatchs, $win, $loss, $heroFilter, $heroList;
+
+  $count = 1;
+  $winRate = round($win / $numberMatchs * 100, 2);
+  $numberOfHeroesFaced = sizeof($heroStats);
+  echo "You won $win and lost $loss games, for a winrate of $winRate%\n";
+  echo "You faced a total of $numberOfHeroesFaced different heroes\n";
+  foreach ($heroStats as $key => $value)
+    {
+      if (sizeof($heroFilter) > 0 && !in_array($key, $heroFilter))
+	continue;
+      $hero = $heroList[$key];
+      $winWith = $heroStats[$key]['winWith'];
+      $lostWith = $heroStats[$key]['lostWith'];
+      $winAgainst = $heroStats[$key]['winAgainst'];
+      $lostAgainst = $heroStats[$key]['lostAgainst'];
+      $totalAgainst = $winAgainst + $lostAgainst;
+      $totalWith = $winWith + $lostWith;
+      $total = $totalAgainst + $totalWith;
+      $rateAgainst = $totalAgainst > 0 ? round($winAgainst / $totalAgainst * 100, 2) : 0;
+      $rateWith = $totalWith > 0 ? round($winWith / $totalWith * 100, 2) : 0;
+      if ($totalAgainst > 0)
+	echo "You faced $hero $totalAgainst times, lost $lostAgainst times, for a winning rate of $rateAgainst%\n";
+      if ($totalWith > 0)
+	echo "You played with a $hero $totalWith times, lost $lostWith times, for a winning rate of $rateWith%\n";
+      if ($count == $top)
+	break;
+      $count++;
+    }
+}
 
 function fetchHistory($startId = null)
 {
@@ -240,7 +246,7 @@ function fetchMatchDetails($id)
 {
   global $apikey;
 
-  echo "Fetching match $id ...";
+  echo "Fetching match $id...";
   $matchDetailRequest = "https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id=$id&key=$apikey";
   $rawJson = fetchUrl($matchDetailRequest);
   if ($rawJson === false || strlen($rawJson) == 0)
@@ -261,9 +267,7 @@ function loadHeroesList()
   $json = json_decode($heroList, true);
   $heroList = array();
   foreach ($json['result']['heroes'] as $hero)
-    {
-      $heroList[$hero['id']] = $hero['localized_name'];
-    }
+    $heroList[$hero['id']] = $hero['localized_name'];
   return $heroList;
 }
 
