@@ -1,5 +1,3 @@
 - handle filtering in a more beautiful way
-- add license file
-- update readme.md
 - make both scripts complementary, one fetching from API, one getting stats from it
 - failed fetching matchs id into file to retrieve them with another script
