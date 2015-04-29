@@ -1,4 +1,3 @@
 - handle filtering in a more beautiful way
-- performance from API calls
 - add license file
 - update readme.md
