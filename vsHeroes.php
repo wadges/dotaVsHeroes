@@ -18,6 +18,7 @@ $maxMatchToCount = 4000;
 $top = 10;
 $offline = false;
 $debug = true;
+$verbose = false;
 // Possible values :
 // -1 : invalid
 // 0 : public matchmaking
@@ -52,7 +53,10 @@ function fetchHistory($startId = null)
   echo "Fetching match history\n";
   $return = file_get_contents($request);
   file_put_contents('historys/'.$steamId, $return);
-  return json_decode($return, true);
+  $json = json_decode($return, true);
+  if ($debug)
+    echo $json['result']['num_results'].' results on '.$json['result']['total_results'].' '.$json['result']['results_remaining']." still results to fetch\n";
+  return $json;
 }
 
 if ($offline)
@@ -66,8 +70,6 @@ if ($offline)
   }
 else
   $json = fetchHistory();
-if ($debug)
-  echo 'Total results with last request '.$json['result']['total_results']."\n";
 $heroList = loadHeroesList();
 echo "Getting your stats ready now...\n";
 $heroStats = array();
@@ -97,17 +99,21 @@ while (true)
 	if ($array == -1)
 	  continue;
 	$resultOfMatch = $array['win'] == true ? 'won' : 'lost';
-	echo 'Match '.$match['match_id'].' you played '.$heroList[$array['myHeroId']].' and '.$resultOfMatch."\n";
+	if ($verbose)
+	  echo 'Match '.$match['match_id'].' you played '.$heroList[$array['myHeroId']].' and '.$resultOfMatch."\n";
 	mergeArrays($heroStats, $array);
 	if ($array['win'])
 	  $win++;
 	else
 	  $loss++;
 	$numberMatchs++;
+	if ($verbose)
+	  echo date('d/m/Y', $match['start_time'])."\n";
       }
     if ($offline)
       break;
   }
+echo 'test: '.$match['start_time']."\n";
 echo "$numberMatchs corresponding to your search!\n";
 if ($numberMatchs == 0)
   exit(0);
