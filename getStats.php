@@ -2,6 +2,7 @@
 
 require_once('sortFunctions.php');
 require_once('fetchUrl.php');
+require_once('heroList.php');
 
 if (!(file_exists('matches') && is_dir('matches')))
   shell_exec('mkdir matches');
@@ -9,7 +10,6 @@ if (!(file_exists('historys') && is_dir('historys')))
   shell_exec('mkdir historys');
 
 // Settings - Filters
-
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
 // be carefull to use good date format according to your region configuration
@@ -222,15 +222,6 @@ function parseMatch($match)
   return $ret;
 }
 
-function fetchHeroesList()
-{
-  global $apikey;
-
-  $request = "https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key=$apikey&language=en_us";
-  $return = fetchUrl($request);
-  file_put_contents('herolistjson', $return);
-}
-
 function radiantWon($matchId)
 {
   if (!file_exists("matches/$matchId"))
@@ -257,18 +248,6 @@ function fetchMatchDetails($id)
   file_put_contents("matches/$id", $rawJson);
   echo "Done\n";
   return json_decode($rawJson, true);
-}
-
-function loadHeroesList()
-{
-  if (!file_exists('herolistjson'))
-    fetchHeroesList();
-  $heroList = file_get_contents('herolistjson');
-  $json = json_decode($heroList, true);
-  $heroList = array();
-  foreach ($json['result']['heroes'] as $hero)
-    $heroList[$hero['id']] = $hero['localized_name'];
-  return $heroList;
 }
 
 ?>
