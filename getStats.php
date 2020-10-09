@@ -12,7 +12,7 @@ if (!(file_exists('historys') && is_dir('historys')))
 // Settings - Filters
 $apikey = trim(file_get_contents('steamapikey'));
 $steamId = 109943; // main account laxa
-// be carefull to use good date format according to your region configuration
+// be careful to use good date format according to your region configuration
 /* $startTime = strtotime('04/01/2015'); */
 /* $endTime = strtotime('12/12/2016'); */
 $maxMatchToCount = 4000;
